@@ -121,7 +121,10 @@
             // Make sure we remove our generated picker element when the scope is destroyed
             // so that we don't end up re-creating another, and another, and another
             $scope.$on('$destroy', function () {
-                $element.data('daterangepicker').remove();
+                var picker = $element.data('daterangepicker');
+                if (picker) {
+                    picker.remove();
+                }
             });
         }
     };
