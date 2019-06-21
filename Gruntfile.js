@@ -1,8 +1,10 @@
 module.exports = function(grunt) {
+
   'use strict';
 
   // Project configuration.
   grunt.initConfig({
+
     pkg: grunt.file.readJSON('package.json'),
 
     jshint: {
@@ -18,31 +20,33 @@ module.exports = function(grunt) {
           autoWatch: true,
           singleRun: true,
           files: [
-            'src/components/jquery/jquery.js',
-            'src/components/angular/angular.js',
-            'src/components/angular-mocks/angular-mocks.js',
-            'src/components/bootstrap/dist/js/bootstrap.js',
-            'src/components/momentjs/min/moment.min.js',
-            'src/components/bootstrap-daterangepicker/daterangepicker.js',
+            'node_modules/jquery/dist/jquery.js',
+            'node_modules/angular/angular.js',
+            'node_modules/angular-mocks/angular-mocks.js',
+            'node_modules/bootstrap/dist/js/bootstrap.js',
+            'node_modules/moment/moment.js',
+            'node_modules/bootstrap-daterangepicker/daterangepicker.js',
             'src/ng-bs-daterangepicker.js',
-            'test/**/*.js']
+            'test/**/*.js'
+          ]
         }
       }
     },
 
     uglify: {
-       options: {
-          preserveComments: 'some',
-          sourceMap: 'dist/ng-bs-daterangepicker.min.js.map',
-          sourceMappingURL: 'ng-bs-daterangepicker.min.js.map',
-          report: 'min'
-       },
-       dist: {
-          files: {
-             'dist/ng-bs-daterangepicker.min.js': ['src/ng-bs-daterangepicker.js']
-          }
-       }
-     }
+      options: {
+        preserveComments: 'some',
+        sourceMap: 'dist/ng-bs-daterangepicker.min.js.map',
+        sourceMappingURL: 'ng-bs-daterangepicker.min.js.map',
+        report: 'min'
+      },
+      dist: {
+        files: {
+          'dist/ng-bs-daterangepicker.min.js': ['src/ng-bs-daterangepicker.js']
+        }
+      }
+    }
+
   });
 
   grunt.loadNpmTasks('grunt-contrib-jshint');
@@ -50,4 +54,5 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
 
   grunt.registerTask('default', ['jshint', 'karma']);
+
 };

@@ -1,13 +1,15 @@
 /**
- * @license ng-bs-daterangepicker v0.0.4
+ * @license ng-bs-daterangepicker v0.0.6
  * (c) 2013 Luis Farzati http://github.com/luisfarzati/ng-bs-daterangepicker
  * License: MIT
  */
 (function (angular) {
-'use strict';
+  'use strict';
 
-angular.module('ngBootstrap', []).directive('input', function ($compile, $parse) {
-    return {
+  angular
+    .module('ngBootstrap', [])
+    .directive('input', ['$parse', function ($parse) {
+      return {
         restrict: 'E',
         require: 'ngModel',
         link: function ($scope, $element, $attributes, ngModel) {
@@ -15,12 +17,16 @@ angular.module('ngBootstrap', []).directive('input', function ($compile, $parse)
                 return;
             }
 
-            var options = {};
+            var options = {
+              'autoUpdateInput': true
+            };
             // This options object is passed to the datepicker's constructor, should match
             // options defined here: http://www.daterangepicker.com/#options
             options.minDate = $attributes.minDate && moment($attributes.minDate);
             options.maxDate = $attributes.maxDate && moment($attributes.maxDate);
-            options.dateLimit = $attributes.limit && moment.duration.apply(this, $attributes.limit.split(' ').map(function (elem, index) { return index === 0 && parseInt(elem, 10) || elem; }) );
+            options.dateLimit = $attributes.limit && moment.duration.apply(this, $attributes.limit.split(' ').map(function (elem, index) {
+              return index === 0 && parseInt(elem, 10) || elem;
+            }));
             options.timeZone = $attributes.timeZone && $parse($attributes.timeZone)($scope);
             options.showDropdowns = ($attributes.showDropdowns == 'true' || $attributes.showDropdowns === true);
             options.showWeekNumbers = ($attributes.showWeekNumbers == 'true' || $attributes.showWeekNumbers === true);
@@ -29,8 +35,8 @@ angular.module('ngBootstrap', []).directive('input', function ($compile, $parse)
             options.timePicker12Hour = ($attributes.timePicker12Hour == 'true' || $attributes.timePicker12Hour === true);
             options.timePickerSeconds = ($attributes.timePickerSeconds == 'true' || $attributes.timePickerSeconds === true);
             options.ranges = $attributes.ranges && $parse($attributes.ranges)($scope);
-            options.opens = $attributes.opens && $parse($attributes.opens)($scope) || 'right';
-            options.drops = $attributes.drops && $parse($attributes.drops)($scope) || 'down';
+            options.opens = $attributes.opens || 'right';
+            options.drops = $attributes.drops || 'down';
             options.buttonClasses = $attributes.buttonClasses || ['btn', 'btn-small'];
             options.applyClass = $attributes.applyClass || '';
             options.cancelClass = $attributes.cancelClass || '';
@@ -45,23 +51,22 @@ angular.module('ngBootstrap', []).directive('input', function ($compile, $parse)
             options.parentEl = ($attributes.parentEl && angular.element($attributes.parentEl)) || null;
 
             var condenseSameDay = ($attributes.condenseSameDay == 'true' || $attributes.condenseSameDay === true);
-            var initialized = false;
 
-            function momentify (date){
-                return moment.isMoment(date) ? moment(date) : date;
-            }
+            var momentify = function (date) {
+                return moment.isMoment(date) ? date : moment(date, options.format);
+            };
 
-            function format(date) {
-                return date.format(options.format);
-            }
+            var format = function (date) {
+                return momentify(date).format(options.format);
+            };
 
-            function formatted(dates) {
+            var formatted = function (dates) {
                 if (condenseSameDay === true && angular.equals(format(dates.startDate), format(dates.endDate))) {
                     return format(dates.startDate);
                 } else {
                     return [format(dates.startDate), format(dates.endDate)].join(options.separator);
                 }
-            }
+            };
 
             ngModel.$render = function () {
                 if (!ngModel.$modelValue || !ngModel.$modelValue.startDate) {
@@ -74,12 +79,13 @@ angular.module('ngBootstrap', []).directive('input', function ($compile, $parse)
                 if (value.startDate) {
                     return value;
                 } else {
-                    var parts = value.split(options.separator);
+                    var parts = value.split(' - ');
 
-                    return {startDate: moment(parts[0], options.format), endDate: moment(parts[1], options.format)};
+                    return {
+                      startDate: moment(parts[0], 'MM/DD/YYYY'),
+                      endDate: moment(parts[1], 'MM/DD/YYYY')
+                    };
                 }
-
-                ngModel.$rollbackViewValue();
             });
 
             ngModel.$formatters.push(function (value) {
@@ -88,16 +94,24 @@ angular.module('ngBootstrap', []).directive('input', function ($compile, $parse)
                 }
             });
 
+            $element.daterangepicker(options);
+
             $scope.$watch($attributes.ngModel, function (modelValue, oldModelValue) {
                 if (!modelValue || !modelValue.startDate) {
                     return;
                 }
 
-                $element.data('daterangepicker').setStartDate(momentify(modelValue.startDate));
-                $element.data('daterangepicker').setEndDate(momentify(modelValue.endDate));
+                var momentStart = momentify(modelValue.startDate),
+                    momentEnd = momentify(modelValue.endDate);
+
+                if (!momentStart.isValid() || !momentEnd.isValid()) {
+                    return;
+                }
+
+                $element.data('daterangepicker').setStartDate(momentStart);
+                $element.data('daterangepicker').setEndDate(momentEnd);
                 $element.data('daterangepicker').updateView();
                 $element.data('daterangepicker').updateCalendars();
-                $element.data('daterangepicker').updateInputText();
 
                 ngModel.$render();
             });
@@ -105,12 +119,12 @@ angular.module('ngBootstrap', []).directive('input', function ($compile, $parse)
             // Make sure we remove our generated picker element when the scope is destroyed
             // so that we don't end up re-creating another, and another, and another
             $scope.$on('$destroy', function () {
-                $element.data('daterangepicker').remove();
+                var picker = $element.data('daterangepicker');
+                if (picker) {
+                    picker.remove();
+                }
             });
-
-            $element.daterangepicker(options);
         }
     };
-});
-
+  }]);
 })(angular);
