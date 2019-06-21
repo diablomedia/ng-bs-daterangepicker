@@ -8,7 +8,7 @@
 
   angular
     .module('ngBootstrap', [])
-    .directive('input', function ($compile, $parse) {
+    .directive('input', ['$parse', function ($parse) {
       return {
         restrict: 'E',
         require: 'ngModel',
@@ -86,8 +86,6 @@
                       endDate: moment(parts[1], 'MM/DD/YYYY')
                     };
                 }
-
-                ngModel.$rollbackViewValue();
             });
 
             ngModel.$formatters.push(function (value) {
@@ -128,5 +126,5 @@
             });
         }
     };
-  });
+  }]);
 })(angular);
